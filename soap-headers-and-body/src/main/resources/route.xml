@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="ASCII"?>
+<routes xmlns="http://camel.apache.org/schema/spring">
+    <route>
+        <from uri="switchyard://Payment"/>
+        <to uri="log:com.mycompany.order?showAll=true"/>
+        <log message="To Request Pipeline"/>
+        <to uri="direct://RequestPipeline"/>
+        <log message="To Reponse Pipeline"/>
+        <to uri="direct://ResponsePipeline"/>
+    </route>
+    <route customId="true" id="RequestPipeline">
+        <from uri="direct://RequestPipeline"/>
+        <log message="In Request Pileline: ${body}"/>
+        <log message="Header: ${header.\{http://ws.camelcookbook.org/payment-service/types\}amount}"/>
+        <setHeader headerName="{http://ws.camelcookbook.org/payment-service/types}bank">
+            <xpath>//*[local-name()='bank']/text()</xpath>
+        </setHeader>
+        <log message="http header custom: ${header.custom}"/>
+        <to uri="log:com.mycompany.order?showAll=true"/>
+        <log message="header bank: ${header.\{http://ws.camelcookbook.org/payment-service/types\}bank}"/>
+        <setHeader headerName="CamelFileName">
+            <constant>test.txt</constant>
+        </setHeader>
+        <inOut uri="switchyard://FileWriter"/>
+        <log message="Message: ${body}"/>
+    </route>
+    <route customId="true" id="ResponsePipeline">
+        <from uri="direct://ResponsePipeline"/>
+        <log message="In Response pipeline: ${body}"/>
+        <removeHeader headerName="{http://ws.camelcookbook.org/payment-service/types}amount"/>
+    </route>
+</routes>

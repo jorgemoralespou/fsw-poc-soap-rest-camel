@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sy:switchyard xmlns:camel="urn:switchyard-component-camel:config:1.1" xmlns:file="urn:switchyard-component-camel-file:config:1.1" xmlns:sca="http://docs.oasis-open.org/ns/opencsa/sca/200912" xmlns:soap="urn:switchyard-component-soap:config:1.1" xmlns:sy="urn:switchyard-config:switchyard:1.1" xmlns:transform="urn:switchyard-config:transform:1.1" name="soap-headers-and-body" targetNamespace="urn:com.example.switchyard:soap:1.0">
+  <sca:composite name="soap-headers-and-body" targetNamespace="urn:com.example.switchyard:soap:1.0">
+    <sca:component name="PaymentCamelXml">
+      <camel:implementation.camel>
+        <camel:xml path="route.xml"/>
+      </camel:implementation.camel>
+      <sca:service name="Payment">
+        <sca:interface.java interface="com.example.switchyard.soap.model.Payment"/>
+      </sca:service>
+      <sca:reference name="FileWriter">
+        <sy:interface.esb inputType="java.lang.String"/>
+      </sca:reference>
+    </sca:component>
+    <sca:service name="Payment" promote="PaymentCamelXml/Payment">
+      <sca:interface.wsdl interface="META-INF/paymentService.wsdl#wsdl.porttype(Payment)"/>
+      <soap:binding.soap name="soap1">
+        <soap:contextMapper includes=".*" soapHeadersType="VALUE"/>
+        <soap:wsdl>META-INF/paymentService.wsdl</soap:wsdl>
+        <soap:wsdlPort>PaymentPort</soap:wsdlPort>
+        <soap:contextPath>payment</soap:contextPath>
+      </soap:binding.soap>
+    </sca:service>
+    <sca:reference name="FileWriter" multiplicity="0..1" promote="PaymentCamelXml/FileWriter">
+      <sy:interface.esb inputType="java.lang.String"/>
+      <file:binding.file name="file1">
+        <file:contextMapper includes="CamelFileName"/>
+        <file:directory>/tmp</file:directory>
+        <file:produce/>
+      </file:binding.file>
+    </sca:reference>
+  </sca:composite>
+  <sy:transforms>
+    <transform:transform.jaxb from="java:com.example.switchyard.soap.model.TransferResponse" to="{http://ws.camelcookbook.org/payment-service/types}transferResponse" contextPath="com.example.switchyard.soap.model"/>
+    <transform:transform.jaxb from="{http://ws.camelcookbook.org/payment-service/types}transferRequest" to="java:com.example.switchyard.soap.model.TransferRequest" contextPath="com.example.switchyard.soap.model"/>
+  </sy:transforms>
+  <sy:domain>
+    <sy:properties>
+      <sy:property name="org.switchyard.handlers.messageTrace.enabled" value="true"/>
+    </sy:properties>
+  </sy:domain>
+</sy:switchyard>
