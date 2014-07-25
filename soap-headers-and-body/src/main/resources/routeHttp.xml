@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="ASCII"?>
 <routes xmlns="http://camel.apache.org/schema/spring">
-  <route>
-    <from uri="switchyard://ESBService"/>
-    <to uri="log:com.mycompany.order?showAll=true"/>
-  </route>
+    <route>
+        <from uri="switchyard://ESBService"/>
+        <log message="My header: ${header.myheader}"/>
+        <to uri="log:com.mycompany.order?showAll=true"/>
+    </route>
 </routes>
